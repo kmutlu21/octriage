@@ -6,7 +6,7 @@ Runs on the GPU machine. It loads the model once and answers the relay gear, one
 |---|---|
 | `app.py` | The FastAPI service: `GET /health` (up? which model?) and `POST /predict` (an image in; the mask, the confidence and measurements out) |
 | `tta.py` | The confidence score: six flipped or shifted copies of a B-scan, segmented and compared |
-| `unet/` | The U-Net, its training and out-of-fold prediction; one YAML (`config.yaml`) drives it all |
+| `unet/` | The U-Net, its training and out-of-fold prediction; one YAML (`config.yaml`) drives it all. Its [model card](unet/MODEL_CARD.md): network, training, validation per fold and cohort |
 | `slurm/` | The same Docker image as Slurm jobs under Apptainer: `train.sbatch`, `score.sbatch`, `serve.sbatch` |
 | `Dockerfile` | One image for the service, training and scoring (build it from the repo root) |
 

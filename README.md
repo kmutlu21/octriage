@@ -31,7 +31,7 @@ flowchart LR
   confidence score from six shifted or flipped copies of each B-scan. It agrees with the graders as
   well as they agree with each other (mean Dice **0.917** vs **0.914**). Any model that returns a
   mask and a confidence can replace it, WRC's nnSAM included; `analysis/gate_analysis.py` then
-  derives its cutoff.
+  derives its cutoff. Details: the [model card](gpu_service/unet/MODEL_CARD.md).
 
 Why a separate GPU service: Flywheel runs gears without GPUs unless GPU compute is added to a site
 ([Flywheel docs](#sources)), and a service keeps the model loaded, so a B-scan costs about 0.17 s on
