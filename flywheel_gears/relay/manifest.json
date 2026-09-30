@@ -1,0 +1,39 @@
+{
+  "name": "relay",
+  "label": "Relay: send a volume's images to a GPU model service",
+  "description": "Carries every image of one volume (an OCT visit, or any stack of 2-D images) to an external model service that runs on a GPU machine, checks each answer, and writes the masks back as one label volume (NRRD) with every image's confidence and measurements in its header. It holds no model and makes no decision: judging the output is the triage gear's job. It asks the service's /health first, retries a dropped connection twice, and sends pixels only. If the service is down or answers badly, the job fails and nothing is written.",
+  "version": "0.2.1",
+  "author": "Kaan",
+  "maintainer": "Kaan",
+  "cite": "Pattern: a Flywheel gear calling a GPU server's API (fw_model_serving proof of concept, WRC).",
+  "license": "MIT",
+  "url": "https://github.com/kmutlu21/octriage",
+  "source": "https://github.com/kmutlu21/octriage",
+  "environment": {
+    "FLYWHEEL": "/flywheel/v0"
+  },
+  "custom": {
+    "gear-builder": {
+      "category": "analysis",
+      "image": "local/relay:0.2.1"
+    }
+  },
+  "inputs": {
+    "volume": {
+      "base": "file",
+      "description": "The images as an NRRD volume (images x rows x columns, 8-bit), 'spacings' in mm in the header (across images, axial, lateral). Optional header field 'missing slices': 1-based numbers of images not acquired."
+    }
+  },
+  "config": {
+    "service_url": {
+      "type": "string",
+      "description": "Base URL of the model service, e.g. http://gpu-host:8000 (http:// or https://). The gear calls <service_url>/health once, then POSTs each image to <service_url>/predict."
+    },
+    "done_tag": {
+      "type": "string",
+      "default": "relay-done",
+      "description": "Tag added to the input volume once relayed, so the gear rule never sends it twice."
+    }
+  },
+  "command": "python run.py"
+}

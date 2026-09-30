@@ -1,0 +1,18 @@
+# Local development environment: runs the tests and the analyses on a CPU (developed on Python 3.14).
+# The GPU service and training run in gpu_service/Dockerfile instead (Python 3.12, torch 2.7.1+cu118).
+# torch is the CPU build here:  pip install torch==2.14.0 --index-url https://download.pytorch.org/whl/cpu
+numpy==2.5.3         # arrays
+pillow==12.3.0       # reading/writing images and masks
+fastapi==0.141.1     # the inference service
+uvicorn==0.53.0      # the web server that runs it
+torch==2.14.0        # the model
+lightning==2.6.6     # the training loop
+pyyaml==6.0.3        # the training config
+pynrrd==1.1.3        # the visit volume (NRRD) that the visit gear reads
+# analysis
+pandas==3.0.6        # tables
+matplotlib==3.11.2   # figures
+# tests
+pytest==9.1.1
+httpx==0.28.1        # FastAPI's TestClient needs it
+jsonschema==4.26.0   # validates the gear manifests against Flywheel's official schema

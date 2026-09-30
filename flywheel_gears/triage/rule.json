@@ -1,0 +1,23 @@
+{
+  "name": "triage: relay outputs",
+  "triggering_input": "relay_output",
+  "config": {
+    "confidence_threshold": 0.9876041522850904,
+    "cutoff_model": "unet_w32_cv5_ez_border-fold0",
+    "min_retina_fraction": 0.9,
+    "modality": "oct-layers",
+    "tag_prefix": "triage-priority"
+  },
+  "auto_update": false,
+  "all": [
+    {"type": "file.name", "value": "_relay\\.nrrd$", "regex": true}
+  ],
+  "any": [],
+  "not": [
+    {"type": "file.tags", "value": "triage-priority1", "regex": false},
+    {"type": "file.tags", "value": "triage-priority2", "regex": false},
+    {"type": "file.tags", "value": "triage-priority3", "regex": false},
+    {"type": "file.tags", "value": "nogear", "regex": false}
+  ],
+  "disabled": true
+}

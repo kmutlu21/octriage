@@ -1,0 +1,17 @@
+# Datasets are downloaded separately and never redistributed (see README "Data").
+/data
+# Model checkpoints are mounted into the service, never committed.
+/weights
+# Training runs: checkpoints, logs, out-of-fold predictions, analysis results.
+/outputs
+# Slurm logs and Apptainer images (gpu_service/slurm/*.sbatch).
+/logs
+/containers
+.venv/
+__pycache__/
+.pytest_cache/
+# Local flyw run state (points at scratch paths on one machine)
+flywheel_gears/relay/config.json
+flywheel_gears/relay/.input_map.json
+flywheel_gears/triage/config.json
+flywheel_gears/triage/.input_map.json

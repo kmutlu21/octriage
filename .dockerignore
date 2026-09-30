@@ -1,0 +1,8 @@
+# Build context is the repo root; only code goes in. Data and weights are mounted at run time,
+# never baked into the image (they are large, and patient data must not travel inside images).
+*
+!gpu_service/
+!analysis/
+!oct_checks/
+!flywheel_gears/triage/
+**/__pycache__

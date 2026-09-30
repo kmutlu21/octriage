@@ -1,0 +1,52 @@
+# The one training config (lighting_templates style: change a number here, not
+# the code). Every value is marked with where it comes from; "ours" means no WRC or published
+# source, and the reason is given. This config produced the served model (all five folds).
+#
+# Sources:  P2 = Safai et al., IOVS 2024 (WRC, 12-model GA comparison)
+#           P3 = Domalpally et al., Ophthalmol Sci 2024 (WRC, strong vs weak labels)
+#           lighting_templates, oct-analysis, oct-evaluation, hrf-oct-segmentation = the team's code
+experiment_name: unet_w32_cv5_ez_border   # outputs/<this>/; also the model name the service reports
+
+seed: 42            # ours: fixes the fold split and each fold's initial weights (seed + fold)
+
+data:
+  manifest: /data/manifest.csv   # path inside the container; data_prep/build_manifest.py writes it
+  n_folds: 5         # P3: 5-fold cross-validation split on subject ID
+  batch_size: 4      # P2 (batch 4)
+  num_workers: 4     # ours: CPU processes preparing batches; a hardware setting, not a result
+  max_shift: 16      # ours: vertical shift of up to +-16 px (~56 um) during training
+  flip: true         # oct-evaluation: random horizontal flip (MONAI RandFlipd)
+  ez_balance: true   # hrf-oct-segmentation: oversample the rare positives (here: scans with EZ loss)
+  shift_mode: border # oct-evaluation: pad by repeating the edge row (padding_mode="border"), never wrap
+
+model:
+  width: 32          # ours: channels in the first layer; with depth 4 -> 7.8M parameters, fits 6 GB
+  depth: 4           # ours: 4 halvings, 512 -> 32 px at the bottleneck
+  lr: 0.001          # P2 (learning rate 0.001)
+  dice_weight: 1.0   # loss = cross-entropy + Dice (nnU-Net's default pairing); equal weights: ours
+  ez_weight: 1.0     # ours: the EZ column loss (gpu_service/unet/train.py ez_column_loss), equal weight
+  weight_decay: 0.01 # oct-analysis: AdamW weight decay 1e-2
+  lr_patience: 5     # oct-evaluation: halve the learning rate after 5 epochs without improvement
+
+trainer:
+  max_epochs: 100    # lighting_templates template.yaml; every fold early-stopped well before it
+  accelerator: auto  # GPU if present
+  devices: 1
+  precision: 16-mixed   # ours: half precision where safe, for speed and memory on a 6 GB GPU
+  benchmark: true       # ours: cuDNN picks the fastest kernels. Faster, but then two runs are not
+                        # bit-identical (training noise); prediction from saved weights still is.
+  enable_progress_bar: false   # logs stay readable in Slurm output files
+  log_every_n_steps: 50
+
+early_stopping:
+  monitor: val_loss
+  patience: 10       # P2: early stopping on validation loss with patience 10
+  mode: min
+  min_delta: 0.0
+
+checkpoint:          # keep only the epoch with the lowest validation loss
+  filename: best
+  monitor: val_loss
+  mode: min
+  save_top_k: 1
+  save_last: false

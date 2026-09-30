@@ -1,0 +1,67 @@
+{
+  "name": "triage",
+  "label": "Triage: which images a grader should read first, and why",
+  "description": "Reads the relay's output for one visit (the masks, with every image's confidence and measurements) and decides the reading order: images below the confidence cutoff, or failing the modality's plausibility check (for OCT: retina found), are read first, hard failures and the least confident first. It gives the visit a reading priority, 1 to 3 (for OCT: priority 1 when a flagged B-scan crosses the central 1-mm circle where CST is measured, or the scan is decentred) and writes a checklist per image, each line with where to look. Signals (layer order, continuity between neighbouring B-scans) are reported and never change a verdict or the priority; image quality and change since the last visit are recorded as 'na'. Every image is still read; only the order changes. The gear contains no model.",
+  "version": "0.2.1",
+  "author": "Kaan",
+  "maintainer": "Kaan",
+  "cite": "Score + cutoff routing: Domalpally et al., Ophthalmol Sci 2022;2:100198. OCT rules pre-registered in analysis/prereg/phase_a.md (+ Amendment 1). Thickness ILM to top of RPE and the 200 um decentration limit: Pak et al., IOVS 2013;54:4512-8.",
+  "license": "MIT",
+  "url": "https://github.com/kmutlu21/octriage",
+  "source": "https://github.com/kmutlu21/octriage",
+  "environment": {
+    "FLYWHEEL": "/flywheel/v0"
+  },
+  "custom": {
+    "gear-builder": {
+      "category": "analysis",
+      "image": "local/triage:0.2.1"
+    }
+  },
+  "inputs": {
+    "relay_output": {
+      "base": "file",
+      "description": "The relay gear's output (<name>_relay.nrrd): the label volume, 'spacings' in mm in the header, and every image's answer in the header field 'relay'. Label 255 = image not acquired."
+    },
+    "continuity_limits": {
+      "base": "file",
+      "optional": true,
+      "description": "Optional JSON of continuity limits learned from graders' tracings (analysis/phase_a.py writes continuity_limits.json: Garvin 2009 mean +- 2.6 SD). Without it, continuity is recorded as 'na'."
+    }
+  },
+  "config": {
+    "confidence_threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.9876041522850904,
+      "description": "Images with confidence at or above this go to the routine queue; below it they are read first. The Youden cutoff on 1,672 out-of-fold OCT5k B-scans for model unet_w32_cv5_ez_border, unrounded (per-fold cutoffs 0.9870-0.9876); rounding it down would pass scans the analysis reads first. Re-derive it for any other model."
+    },
+    "cutoff_model": {
+      "type": "string",
+      "default": "unet_w32_cv5_ez_border-fold0",
+      "description": "The model the cutoff was chosen for. The job fails if the relay's answers come from another model, because another model's scores need their own cutoff (analysis/gate_analysis.py derives one)."
+    },
+    "min_retina_fraction": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.9,
+      "description": "OCT plausibility check: the mask must show retina (any layer band) in at least this fraction of image columns, or the B-scan is read first whatever its confidence. All 5,016 OCT5k human gradings are at or above 0.949."
+    },
+    "modality": {
+      "type": "string",
+      "enum": [
+        "oct-layers"
+      ],
+      "default": "oct-layers",
+      "description": "Which modality module judges the images. Today: OCT retinal layers."
+    },
+    "tag_prefix": {
+      "type": "string",
+      "default": "triage-priority",
+      "description": "The input file is tagged <prefix>1, 2 or 3."
+    }
+  },
+  "command": "python run.py"
+}
